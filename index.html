@@ -1,1 +1,523 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pile ou Face</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Georgia', 'Garamond', serif;
+            background: linear-gradient(135deg, #8B4789 0%, #D4AF37 50%, #8B0000 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" font-size="40" opacity="0.1">🎭</text></svg>') repeat;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .container {
+            background: linear-gradient(145deg, #FFF8DC 0%, #FFFAED 100%);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(212,175,55,0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 3px solid #D4AF37;
+            position: relative;
+        }
+
+        .container::before {
+            content: '🎭';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 2em;
+            opacity: 0.3;
+        }
+
+        .container::after {
+            content: '🎭';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2em;
+            opacity: 0.3;
+        }
+
+        h1 {
+            color: #8B0000;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(212,175,55,0.3);
+            font-family: 'Georgia', serif;
+            font-style: italic;
+        }
+
+        /* Styles pour les pages */
+        .login-page, .settings-page, .game-page {
+            display: none;
+        }
+
+        .login-page {
+            display: block;
+        }
+
+        /* Styles pour la page de connexion */
+        .login-form {
+            margin-top: 30px;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #D4AF37;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: #FFFAED;
+        }
+
+        .error-message {
+            color: #8B0000;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Styles pour la page de paramètres */
+        .settings-content {
+            margin-top: 30px;
+        }
+
+        .settings-content label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #D4AF37;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #8B0000;
+            cursor: pointer;
+            border: 2px solid #D4AF37;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #8B0000;
+            cursor: pointer;
+            border: 2px solid #D4AF37;
+        }
+
+        .chance-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #8B0000;
+            margin: 20px 0;
+            text-shadow: 1px 1px 2px rgba(212,175,55,0.3);
+        }
+
+        .info-text {
+            color: #666;
+            margin: 15px 0;
+            font-size: 0.95em;
+        }
+
+        /* Styles pour le jeu */
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #D4AF37;
+            border-radius: 10px;
+            background: #FFFAED;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #8B4789 0%, #8B0000 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(139,0,0,0.3);
+            border: 2px solid #D4AF37;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(139,0,0,0.4);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .coin-container {
+            margin: 30px 0;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .coin {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #8B0000;
+            box-shadow: 0 5px 25px rgba(212,175,55,0.5), inset 0 0 20px rgba(139,0,0,0.2);
+            border: 5px solid #8B4789;
+        }
+
+        .coin.flipping {
+            animation: flip 1s ease-in-out;
+        }
+
+        @keyframes flip {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(1800deg); }
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1.3em;
+            min-height: 60px;
+        }
+
+        .result-text {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .win {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 2px solid #D4AF37;
+        }
+
+        .lose {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border: 2px solid #8B0000;
+        }
+
+        .score {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #D4AF37;
+        }
+
+        .score-item {
+            display: inline-block;
+            margin: 0 20px;
+            font-size: 1.1em;
+        }
+
+        .score-number {
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #8B0000;
+            text-shadow: 1px 1px 2px rgba(212,175,55,0.3);
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #8B4789 0%, #6c757d 100%);
+            padding: 10px 20px;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #8B4789 0%, #6c757d 100%);
+            padding: 10px 30px;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page de connexion -->
+        <div id="loginPage" class="login-page">
+            <h1>🔐 Connexion</h1>
+            <p style="color: #666; margin-bottom: 20px;">Entrez le mot de passe pour accéder au jeu</p>
+            
+            <div class="login-form">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" placeholder="Entrez le mot de passe">
+                <button onclick="login()">Se connecter</button>
+                <div id="errorMessage" class="error-message">❌ Mot de passe incorrect</div>
+            </div>
+        </div>
+
+        <!-- Page de paramètres -->
+        <div id="settingsPage" class="settings-page">
+            <h1>⚙️ Paramètres</h1>
+            <p style="color: #666; margin-bottom: 20px;">Ajustez les chances de victoire</p>
+            
+            <div class="settings-content">
+                <label for="chanceSlider">Chances de victoire :</label>
+                <div class="chance-display" id="chanceDisplay">50%</div>
+                
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="50" class="slider" id="chanceSlider" oninput="updateChance()">
+                </div>
+                
+                <p class="info-text">
+                    Déplacez le curseur pour modifier vos chances de gagner.<br>
+                    0% = Toujours perdre | 100% = Toujours gagner
+                </p>
+                
+                <button onclick="goToGame()">Jouer</button>
+                <button onclick="backToLogin()" class="back-btn">← Retour à la connexion</button>
+            </div>
+        </div>
+
+        <!-- Page du jeu -->
+        <div id="gamePage" class="game-page">
+            <h1>🪙 Pile ou Face</h1>
+            
+            <div class="controls">
+                <label for="choice">Faites votre choix :</label>
+                <select id="choice">
+                    <option value="Pile">Pile</option>
+                    <option value="Face">Face</option>
+                </select>
+                
+                <button id="flipBtn" onclick="flipCoin()">Lancer la pièce</button>
+            </div>
+
+            <div class="coin-container">
+                <div class="coin" id="coin">?</div>
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <div class="score">
+                <div class="score-item">
+                    Victoires : <span class="score-number" id="wins">0</span>
+                </div>
+                <div class="score-item">
+                    Défaites : <span class="score-number" id="losses">0</span>
+                </div>
+            </div>
+
+            <button onclick="resetScore()" style="margin-top: 20px; background: #dc3545; padding: 10px 30px; font-size: 1em;">
+                🔄 Remettre à zéro
+            </button>
+
+            <button onclick="logout()" class="logout-btn">
+                🚪 Se déconnecter
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let wins = 0;
+        let losses = 0;
+        let winChance = 50; // Pourcentage de chances de gagner
+
+        function login() {
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (password === 'lejeu') {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('gamePage').style.display = 'block';
+                errorMessage.style.display = 'none';
+                document.getElementById('password').value = '';
+            } else if (password === 'tricheur') {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('settingsPage').style.display = 'block';
+                errorMessage.style.display = 'none';
+                document.getElementById('password').value = '';
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        function updateChance() {
+            winChance = document.getElementById('chanceSlider').value;
+            document.getElementById('chanceDisplay').textContent = winChance + '%';
+        }
+
+        function goToGame() {
+            document.getElementById('settingsPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+        }
+
+        function backToLogin() {
+            document.getElementById('settingsPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'block';
+            // Réinitialiser les chances à 50%
+            winChance = 50;
+            document.getElementById('chanceSlider').value = 50;
+            document.getElementById('chanceDisplay').textContent = '50%';
+        }
+
+        function logout() {
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('password').value = '';
+        }
+
+        // Permettre la connexion avec la touche Entrée
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        });
+
+        function resetScore() {
+            wins = 0;
+            losses = 0;
+            document.getElementById('wins').textContent = wins;
+            document.getElementById('losses').textContent = losses;
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('coin').textContent = '?';
+        }
+
+        function flipCoin() {
+            const choice = document.getElementById('choice').value;
+            const coin = document.getElementById('coin');
+            const result = document.getElementById('result');
+            const flipBtn = document.getElementById('flipBtn');
+
+            // Désactiver le bouton pendant l'animation
+            flipBtn.disabled = true;
+            result.innerHTML = '';
+            coin.textContent = '?';
+
+            // Ajouter l'animation
+            coin.classList.add('flipping');
+
+            // Déterminer le résultat en fonction des chances de victoire
+            const randomNumber = Math.random() * 100;
+            const playerWins = randomNumber < winChance;
+
+            // Simuler le tirage selon si le joueur doit gagner ou perdre
+            let randomResult;
+            if (playerWins) {
+                randomResult = choice; // Le joueur gagne
+            } else {
+                randomResult = choice === 'Pile' ? 'Face' : 'Pile'; // Le joueur perd
+            }
+
+            // Attendre la fin de l'animation
+            setTimeout(() => {
+                coin.classList.remove('flipping');
+                coin.textContent = randomResult === 'Pile' ? 'P' : 'F';
+
+                // Afficher le résultat
+                let message = '';
+                if (choice === randomResult) {
+                    message = '<div class="message win">🎉 Vous avez gagné !</div>';
+                    wins++;
+                    document.getElementById('wins').textContent = wins;
+                } else {
+                    message = '<div class="message lose">😔 Vous avez perdu !</div>';
+                    losses++;
+                    document.getElementById('losses').textContent = losses;
+                }
+
+                result.innerHTML = `
+                    <div class="result-text">Résultat : ${randomResult}</div>
+                    ${message}
+                `;
+
+                flipBtn.disabled = false;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
